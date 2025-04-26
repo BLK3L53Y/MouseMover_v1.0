@@ -4,16 +4,7 @@
     Created on: 2025-04-25
 
     Description:
-    Lightweight AutoHotkey v2.0 application that simulates mouse movements
-    to prevent system idling, with fully customizable settings and GUI.
-
-    Features:
-    - Customizable move interval and distance
-    - Manual move hotkey (Ctrl+Alt+M)
-    - Save/load settings
-    - Idle detection and dynamic auto-start
-    - Minimize to tray
-    - Reset settings button
+    Lightweight AutoHotkey v2.0 app to prevent system idle with customizable random mouse movement.
 */
 
 #Requires AutoHotkey v2.0
@@ -26,12 +17,13 @@ SetWorkingDir A_ScriptDir
 ; ---------------------------
 global isRunning := false
 , isManualMoving := false
-, moveInterval := 30000 ; default 30 seconds
-, moveDistance := 10    ; default 10 pixels
+, moveInterval := 30000
+, moveDistance := 10
 , settingsFile := A_ScriptDir . "\settings.ini"
 , logFile := A_ScriptDir . "\mousemover.log"
 , featureStates := Map()
 , currentProfile := "Default"
+, startupShortcut := A_Startup . "\" . A_ScriptName . ".lnk"
 
 global MainGui, statusText
 
@@ -79,7 +71,6 @@ stopButton := MainGui.Add("Button", "w100 x+10", "Stop")
 exitButton := MainGui.Add("Button", "w100 x+10", "Exit")
 statusText := MainGui.Add("Text", "w400", "Status: Stopped")
 
-; --- Footer Labels ---
 MainGui.Add("Text", "xm y+20 w400 Center", "Created by BLK3L53Y")
 MainGui.Add("Text", "xm y+5 w400 Center", "Press Ctrl+Alt+M to manually move mouse")
 
@@ -90,8 +81,8 @@ resetButton.OnEvent("Click", (*) => ResetSettings())
 startButton.OnEvent("Click", (*) => StartMover())
 stopButton.OnEvent("Click", (*) => StopMover())
 exitButton.OnEvent("Click", (*) => SafeExit())
+startupCheckbox.OnEvent("Click", (*) => HandleStartupToggle())
 
-; --- GUI Behavior Events ---
 MainGui.OnEvent("Close", (*) => MainGui.Hide())
 MainGui.OnEvent("Size", GuiSizeHandler)
 
@@ -108,7 +99,7 @@ Tray.Add("Exit", (*) => SafeExit())
 ; ---------------------------
 ; Hotkeys
 ; ---------------------------
-^!m::ToggleManualMove() ; Ctrl+Alt+M hotkey to toggle manual mouse move
+^!m::ToggleManualMove()
 
 ; ---------------------------
 ; Load Settings AFTER GUI created
@@ -117,8 +108,7 @@ LoadSettings()
 ApplySettings()
 MainGui.Show()
 
-; Auto-start if enabled
-if featureStates["AutoStart"] && FileExist(A_Startup . "\" . A_ScriptName . ".lnk")
+if featureStates["AutoStart"] && FileExist(startupShortcut)
     StartMover()
 
 ; ---------------------------
@@ -241,7 +231,7 @@ ManualMoveNow() {
     MouseMoveAction()
 }
 
-; MouseMoveAction - Moves mouse randomly within allowed screen
+; MouseMoveAction - Moves mouse randomly
 MouseMoveAction() {
     global featureStates, moveDistance
     if (featureStates["PauseThreshold"] > 0) {
@@ -265,7 +255,7 @@ MouseMoveAction() {
         FileAppend(A_Now . ": Moved to (" . newX . ", " . newY . ")`n", logFile)
 }
 
-; Clamp - Restricts value inside min/max range
+; Clamp - Restricts value inside min/max
 Clamp(val, minVal, maxVal) {
     return (val < minVal) ? minVal : (val > maxVal) ? maxVal : val
 }
@@ -280,6 +270,18 @@ GuiSizeHandler(guiObj, eventInfo, width, height) {
 UpdateStatus(msg) {
     global statusText
     statusText.Value := "Status: " . msg
+}
+
+; HandleStartupToggle - Create or delete startup shortcut
+HandleStartupToggle() {
+    if (startupCheckbox.Value) {
+        FileCreateShortcut(A_ScriptFullPath, startupShortcut)
+        MsgBox("Startup shortcut created.", "Success")
+    } else {
+        if FileExist(startupShortcut)
+            FileDelete(startupShortcut)
+        MsgBox("Startup shortcut removed.", "Success")
+    }
 }
 
 ; SafeExit - Exits application safely
