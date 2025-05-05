@@ -10,6 +10,11 @@ It is fully customizable through a user-friendly graphical interface.
 
 ---
 
+## Updates
+**If using AHK v2, then use the .ahk file. Alternatively, the .akh file has been compiled into and executable and is a .exe file. AHK v2 is not required to be installed if using the .exe file.
+
+---
+
 ## Features
 - ✅ Random mouse movements at customizable intervals and distances
 - ✅ Customizable idle detection and auto-start behavior
