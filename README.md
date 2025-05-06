@@ -82,7 +82,6 @@ To run MouseMover automatically when Windows starts:
 
 ## Requirements
 - Windows Operating System
-- [AutoHotkey v2.0](https://www.autohotkey.com/) installed
 
 ---
 
